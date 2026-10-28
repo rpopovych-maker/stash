@@ -153,6 +153,7 @@ struct SettingsView: View {
             ("Paste item 1–9", ["⌘", "1–9"]),
             ("Copy without pasting", ["⌘", "C"]),
             ("Pin / unpin", ["⌘", "P"]),
+            ("Rename item", ["⌘", "R"]),
             ("Delete from History or unpin", ["⌘", "⌫"]),
             ("Next / previous tab", ["tab", "⇧ tab"]),
             ("Clear search or close", ["esc"]),

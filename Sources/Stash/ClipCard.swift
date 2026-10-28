@@ -89,9 +89,11 @@ struct ClipCard: View {
     private var header: some View {
         HStack(spacing: 8) {
             VStack(alignment: .leading, spacing: 1) {
-                Text(item.kind.label)
+                Text(item.title ?? item.kind.label)
                     .font(.system(size: 13, weight: .semibold))
-                Text(relativeTime)
+                    .lineLimit(1)
+                Text(item.title == nil ? relativeTime : "\(item.kind.label) · \(relativeTime)")
+                    .lineLimit(1)
                     .font(.system(size: 11))
                     .opacity(0.8)
             }

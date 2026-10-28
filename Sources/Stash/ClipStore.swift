@@ -108,6 +108,12 @@ final class ClipStore {
         }
     }
 
+    func rename(_ item: ClipItem, to title: String) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        item.title = trimmed.isEmpty ? nil : trimmed
+        save()
+    }
+
     func touch(_ item: ClipItem) {
         item.createdAt = Date()
         save()

@@ -19,7 +19,8 @@ final class PanelModel {
     var selectedIndex = 0
     var editTarget: GroupEditTarget?
     var pendingItemID: UUID?
-    var isEditing: Bool { editTarget != nil }
+    var renamingItemID: UUID?
+    var isEditing: Bool { editTarget != nil || renamingItemID != nil }
     var openCount = 0
     var resetCount = 0
 
@@ -39,7 +40,11 @@ final class PanelModel {
         }
         let q = query.trimmingCharacters(in: .whitespaces)
         if !q.isEmpty {
-            base = base.filter { $0.searchText.localizedStandardContains(q) || $0.kind.label.localizedStandardContains(q) }
+            base = base.filter {
+                $0.searchText.localizedStandardContains(q)
+                    || $0.kind.label.localizedStandardContains(q)
+                    || ($0.title?.localizedStandardContains(q) ?? false)
+            }
         }
         return base
     }
@@ -158,6 +163,7 @@ final class PanelController: NSObject, NSWindowDelegate {
         model.selectedIndex = 0
         model.editTarget = nil
         model.pendingItemID = nil
+        model.renamingItemID = nil
         model.resetCount += 1
     }
 
@@ -216,6 +222,9 @@ final class PanelController: NSObject, NSWindowDelegate {
                 model.currentGroup == nil ? store.deleteFromHistory(item) : store.unpin(item)
                 model.moveSelection(0)
             }
+            return true
+        case kVK_ANSI_R:
+            if let item = model.selectedItem { model.renamingItemID = item.id }
             return true
         case kVK_ANSI_P:
             if let item = model.selectedItem { store.togglePin(item) }

@@ -41,6 +41,7 @@ final class ClipItem {
     var sourceAppName: String?
     var isPinned: Bool = false
     var inHistory: Bool = true
+    var title: String?
     var searchText: String = ""
     var contentHash: String = ""
     var groups: [ClipGroup] = []

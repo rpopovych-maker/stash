@@ -137,6 +137,13 @@ struct PanelView: View {
         store.items.filter { ids.contains($0.id) }
     }
 
+    private func renameBinding(_ item: ClipItem) -> Binding<Bool> {
+        Binding(
+            get: { model.renamingItemID == item.id },
+            set: { if !$0, model.renamingItemID == item.id { model.renamingItemID = nil } }
+        )
+    }
+
     private func editBinding(_ target: GroupEditTarget) -> Binding<Bool> {
         Binding(
             get: { model.editTarget == target },
@@ -158,6 +165,12 @@ struct PanelView: View {
                                     .frame(width: 150, height: 160)
                             }
                             .contextMenu { menu(for: item) }
+                            .popover(isPresented: renameBinding(item), arrowEdge: .top) {
+                                RenameEditor(initialTitle: item.title ?? "") { title in
+                                    store.rename(item, to: title)
+                                    model.renamingItemID = nil
+                                } onCancel: { model.renamingItemID = nil }
+                            }
                     }
                 }
                 .padding(.horizontal, 4)
@@ -179,6 +192,7 @@ struct PanelView: View {
         Button("Paste") { Paster.paste(item) }
         Button("Paste as Plain Text") { Paster.paste(item, plainText: true) }
         Button("Copy") { Paster.copy(item); PanelController.shared.hide() }
+        Button("Rename…") { model.renamingItemID = item.id }
         Divider()
         Menu(item.group == nil ? "Pin to" : "Move to") {
             ForEach(store.groups) { group in
@@ -276,6 +290,40 @@ struct TabChip: View {
         if isSelected { return (color ?? .accentColor).opacity(0.9) }
         if isTargeted { return (color ?? .accentColor).opacity(0.3) }
         return Color.primary.opacity(0.09)
+    }
+}
+
+struct RenameEditor: View {
+    @State var title: String
+    let onSave: (String) -> Void
+    let onCancel: () -> Void
+    @FocusState private var focused: Bool
+
+    init(initialTitle: String, onSave: @escaping (String) -> Void, onCancel: @escaping () -> Void) {
+        _title = State(initialValue: initialTitle)
+        self.onSave = onSave
+        self.onCancel = onCancel
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Rename Item").font(.headline)
+            TextField("Name", text: $title)
+                .textFieldStyle(.roundedBorder)
+                .focused($focused)
+                .onSubmit { onSave(title) }
+            HStack {
+                Text("Leave empty to remove the name.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Cancel", action: onCancel).keyboardShortcut(.cancelAction)
+                Button("Save") { onSave(title) }.keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(16)
+        .frame(width: 320)
+        .onAppear { focused = true }
     }
 }
 

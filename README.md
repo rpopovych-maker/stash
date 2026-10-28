@@ -9,6 +9,7 @@ Stash keeps everything you copy — text, images, links, files and colors — an
 - **Clipboard history** for text (with formatting), images, links, files and hex colors, each shown with the app it came from
 - **Instant search** across text, file names, source apps and even the text inside images
 - **Groups** to pin items you want to keep — drag a card onto a group, or press ⌘P
+- **Rename items** to give snippets a memorable name you can search for
 - **Paste directly** into the active app, or just copy to the clipboard
 - **Automatic cleanup** — keep history for a day, a week, a month, a year or forever; pinned items never expire
 - **Privacy** — passwords from 1Password, Bitwarden, Keychain and other password managers are never saved, and you can ignore specific apps or pause capturing
@@ -56,6 +57,7 @@ Press **⌥⌘C** to open Stash, then start typing to search. Click an item or p
 | Paste item 1–9 | ⌘1 – ⌘9 |
 | Copy without pasting | ⌘C |
 | Pin / unpin | ⌘P |
+| Rename item | ⌘R |
 | Delete from history, or unpin inside a group | ⌘⌫ |
 | Next / previous tab | tab / ⇧tab |
 | Clear search or close | esc |
