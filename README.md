@@ -21,9 +21,9 @@ Stash keeps everything you copy — text, images, links, files and colors — an
 
 ## Install
 
-1. Download **Stash.zip** from the [latest release](https://github.com/rpopovych-maker/stash/releases/latest).
-2. Unzip it and drag **Stash.app** into your **Applications** folder.
-3. Open Stash. macOS will warn that it can't verify the developer, because Stash isn't notarized by Apple. To allow it:
+1. Download **Stash.dmg** from the [latest release](https://github.com/rpopovych-maker/stash/releases/latest).
+2. Open it and drag **Stash** onto the **Applications** folder in the window that appears, then eject the disk image.
+3. Open Stash from Applications. macOS will warn that it can't verify the developer, because Stash isn't notarized by Apple. To allow it:
    - Open **System Settings → Privacy & Security**, scroll down and click **Open Anyway** next to the message about Stash, then confirm, **or**
    - run this in Terminal:
      ```sh
@@ -41,7 +41,7 @@ Without it, Stash still copies the item and you can press ⌘V yourself. You can
 
 ### Updating
 
-Download the new release and replace the app in Applications. macOS ties Accessibility access to the exact app build, so after updating, remove Stash from the Accessibility list with **–** and turn it on again.
+Download the new release and drag Stash onto Applications again, choosing **Replace**. macOS ties Accessibility access to the exact app build, so after updating, remove Stash from the Accessibility list with **–** and turn it on again.
 
 ## Usage
 
@@ -77,13 +77,13 @@ cd stash
 ./build.sh --install
 ```
 
-`build.sh` builds a universal app into `build/Stash.app`. Pass `--install` to copy it to Applications and launch it, or `--zip` to create `build/Stash.zip`.
+`build.sh` builds a universal app into `build/Stash.app`. Pass `--install` to copy it to Applications and launch it, `--dmg` or `--zip` to package it, or `--release` to create both.
 
 Apps built locally are signed ad-hoc, which means macOS resets Accessibility access on every rebuild. To keep it between builds, create a self-signed certificate named **Stash Local Signing** in Keychain Access (**Certificate Assistant → Create a Certificate…**, type **Code Signing**); `build.sh` uses it automatically.
 
 ## Releasing
 
-Push a version tag and GitHub Actions builds the app and publishes a release with `Stash.zip` attached:
+Push a version tag and GitHub Actions builds the app and publishes a release with `Stash.dmg` and `Stash.zip` attached:
 
 ```sh
 git tag v1.0.0

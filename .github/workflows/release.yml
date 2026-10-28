@@ -22,15 +22,17 @@ jobs:
             export VERSION="${GITHUB_REF_NAME#v}"
           fi
           export BUILD_NUMBER="${{ github.run_number }}"
-          ./build.sh --zip
+          ./build.sh --release
 
       - uses: actions/upload-artifact@v4
         with:
           name: Stash
-          path: build/Stash.zip
+          path: |
+            build/Stash.dmg
+            build/Stash.zip
 
       - name: Publish release
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" build/Stash.zip --title "Stash $GITHUB_REF_NAME" --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" build/Stash.dmg build/Stash.zip --title "Stash $GITHUB_REF_NAME" --generate-notes

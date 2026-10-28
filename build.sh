@@ -26,10 +26,30 @@ else
     ADHOC=1
 fi
 
-if [[ "${1:-}" == "--zip" ]]; then
+make_zip() {
     rm -f build/Stash.zip
     ditto -c -k --keepParent "$APP" build/Stash.zip
     echo "Built build/Stash.zip"
+}
+
+make_dmg() {
+    local staging=build/dmg
+    rm -rf "$staging" build/Stash.dmg
+    mkdir -p "$staging"
+    cp -R "$APP" "$staging/"
+    ln -s /Applications "$staging/Applications"
+    hdiutil create -volname Stash -srcfolder "$staging" -fs HFS+ -format UDZO -ov build/Stash.dmg >/dev/null
+    rm -rf "$staging"
+    echo "Built build/Stash.dmg"
+}
+
+if [[ "${1:-}" == "--zip" ]]; then
+    make_zip
+elif [[ "${1:-}" == "--dmg" ]]; then
+    make_dmg
+elif [[ "${1:-}" == "--release" ]]; then
+    make_zip
+    make_dmg
 elif [[ "${1:-}" == "--install" ]]; then
     pkill -x Stash || true
     if [[ -n "${ADHOC:-}" ]]; then
