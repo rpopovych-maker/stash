@@ -17,9 +17,13 @@ cp Resources/AppIcon.icns "$APP/Contents/Resources/"
 plutil -replace CFBundleShortVersionString -string "$VERSION" "$APP/Contents/Info.plist"
 plutil -replace CFBundleVersion -string "$BUILD_NUMBER" "$APP/Contents/Info.plist"
 
-IDENTITY="Stash Local Signing"
+IDENTITY="${SIGN_IDENTITY:-Stash Code Signing}"
 if security find-certificate -c "$IDENTITY" >/dev/null 2>&1; then
     codesign --force --deep --sign "$IDENTITY" "$APP"
+    echo "Signed with '$IDENTITY'"
+elif [[ -n "${REQUIRE_SIGNING:-}" ]]; then
+    echo "error: '$IDENTITY' certificate not found" >&2
+    exit 1
 else
     echo "warning: '$IDENTITY' certificate not found, signing ad-hoc (Accessibility must be re-granted after each rebuild)"
     codesign --force --deep --sign - "$APP"

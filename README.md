@@ -13,6 +13,7 @@ Stash keeps everything you copy — text, images, links, files and colors — an
 - **Paste directly** into the active app, or just copy to the clipboard
 - **Automatic cleanup** — keep history for a day, a week, a month, a year or forever; pinned items never expire
 - **Privacy** — passwords from 1Password, Bitwarden, Keychain and other password managers are never saved, and you can ignore specific apps or pause capturing
+- **One-click updates** — Stash tells you when a new version is out and installs it for you
 - Lives in the menu bar, launches at login, no Dock icon
 
 ## Requirements
@@ -42,7 +43,11 @@ Without it, Stash still copies the item and you can press ⌘V yourself. You can
 
 ### Updating
 
-Download the new release and drag Stash onto Applications again, choosing **Replace**. macOS ties Accessibility access to the exact app build, so after updating, remove Stash from the Accessibility list with **–** and turn it on again.
+Stash checks for new versions once a day. When one is available, an **Update** button appears in the panel, the menu bar menu and Settings → Updates. Click it and Stash downloads the new version, replaces itself and relaunches. You can also choose **Check for Updates…** from the menu bar.
+
+Updates keep your history, settings and Accessibility access. Stash only installs updates signed with the same certificate as the version you have.
+
+> Updating from 1.0.0 or 1.0.1: those versions were signed differently, so after updating to 1.0.2, remove Stash from the Accessibility list with **–** and turn it on again. This is needed only once.
 
 ## Usage
 
@@ -81,11 +86,13 @@ cd stash
 
 `build.sh` builds a universal app into `build/Stash.app`. Pass `--install` to copy it to Applications and launch it, `--dmg` or `--zip` to package it, or `--release` to create both.
 
-Apps built locally are signed ad-hoc, which means macOS resets Accessibility access on every rebuild. To keep it between builds, create a self-signed certificate named **Stash Local Signing** in Keychain Access (**Certificate Assistant → Create a Certificate…**, type **Code Signing**); `build.sh` uses it automatically.
+Without a signing certificate, local builds are signed ad-hoc, which means macOS resets Accessibility access on every rebuild. To keep it between builds, create a self-signed certificate named **Stash Code Signing** in Keychain Access (**Certificate Assistant → Create a Certificate…**, type **Code Signing**); `build.sh` uses it automatically. Set `SIGN_IDENTITY` to use a certificate with a different name.
 
 ## Releasing
 
-Push a version tag and GitHub Actions builds the app and publishes a release with `Stash.dmg` and `Stash.zip` attached:
+Releases are signed with a self-signed certificate stored in the repository secrets `SIGNING_P12` (the base64-encoded `.p12`) and `SIGNING_PASSWORD`. Using the same certificate for every release keeps users' Accessibility access across updates and lets the in-app updater verify downloads.
+
+Push a version tag and GitHub Actions builds and signs the app and publishes a release with `Stash.dmg` and `Stash.zip` attached:
 
 ```sh
 git tag v1.0.0
@@ -94,7 +101,7 @@ git push origin v1.0.0
 
 ## Privacy
 
-Your history is stored only on your Mac, in `~/Library/Application Support/Stash/`. Stash makes no network requests.
+Your history is stored only on your Mac, in `~/Library/Application Support/Stash/`, and is never sent anywhere. The only network request Stash makes is a daily check of this repository's latest release on GitHub, which you can turn off in Settings → Updates.
 
 ## License
 

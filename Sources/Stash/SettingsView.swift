@@ -34,6 +34,7 @@ struct SettingsView: View {
     @State private var recording = false
     @State private var recorder: Any?
     @State private var confirmClear = false
+    private var updater = Updater.shared
 
     private let maxItemOptions = [500, 1000, 5000, 10000, 0]
     private let refresh = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -131,6 +132,22 @@ struct SettingsView: View {
             } footer: {
                 Text("Items marked as concealed by password managers like 1Password and Keychain are never saved.")
             }
+
+            Section {
+                Toggle("Automatically check for updates", isOn: $settings.autoCheckUpdates)
+                LabeledContent("Stash \(updater.currentVersion)") {
+                    updateControl
+                }
+                if case .failed(let message) = updater.state {
+                    Text(message)
+                        .font(.callout)
+                        .foregroundStyle(.red)
+                }
+            } header: {
+                Text("Updates")
+            } footer: {
+                Text("Stash checks GitHub once a day. Nothing else is sent anywhere.")
+            }
         }
         .formStyle(.grouped)
         .frame(width: 520, height: 680)
@@ -159,6 +176,37 @@ struct SettingsView: View {
             ("Clear search or close", ["esc"]),
             ("Open Settings", ["⌘", ","]),
         ]
+    }
+
+    @ViewBuilder
+    private var updateControl: some View {
+        switch updater.state {
+        case .checking:
+            ProgressView().controlSize(.small)
+        case .downloading:
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text("Downloading…").foregroundStyle(.secondary)
+            }
+        case .installing:
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text("Installing…").foregroundStyle(.secondary)
+            }
+        case .available(let release):
+            HStack(spacing: 8) {
+                Link("What's New", destination: release.pageURL)
+                Button("Update to \(release.version)") { Task { await updater.install() } }
+                    .buttonStyle(.glassProminent)
+            }
+        case .upToDate:
+            HStack(spacing: 8) {
+                Label("Up to date", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                Button("Check Now") { Task { await updater.check() } }
+            }
+        case .idle, .failed:
+            Button("Check Now") { Task { await updater.check() } }
+        }
     }
 
     private func startRecording() {

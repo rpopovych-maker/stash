@@ -44,6 +44,7 @@ final class AppSettings {
     var ignoreConcealed: Bool { didSet { defaults.set(ignoreConcealed, forKey: "ignoreConcealed") } }
     var ignoredBundleIDs: [String] { didSet { defaults.set(ignoredBundleIDs, forKey: "ignoredBundleIDs") } }
     var isPaused: Bool { didSet { defaults.set(isPaused, forKey: "isPaused") } }
+    var autoCheckUpdates: Bool { didSet { defaults.set(autoCheckUpdates, forKey: "autoCheckUpdates") } }
     var hotKey: HotKeyCombo {
         didSet {
             if let data = try? JSONEncoder().encode(hotKey) { defaults.set(data, forKey: "hotKey") }
@@ -58,6 +59,7 @@ final class AppSettings {
             "ignoreConcealed": true,
             "ignoredBundleIDs": [String](),
             "isPaused": false,
+            "autoCheckUpdates": true,
         ])
         pasteDirectly = defaults.bool(forKey: "pasteDirectly")
         retention = Retention(rawValue: defaults.integer(forKey: "retention")) ?? .month
@@ -65,6 +67,7 @@ final class AppSettings {
         ignoreConcealed = defaults.bool(forKey: "ignoreConcealed")
         ignoredBundleIDs = defaults.stringArray(forKey: "ignoredBundleIDs") ?? []
         isPaused = defaults.bool(forKey: "isPaused")
+        autoCheckUpdates = defaults.bool(forKey: "autoCheckUpdates")
         if let data = defaults.data(forKey: "hotKey"), let combo = try? JSONDecoder().decode(HotKeyCombo.self, from: data) {
             hotKey = combo
         } else {

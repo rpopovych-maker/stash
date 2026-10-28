@@ -15,6 +15,14 @@ struct StashApp: App {
             Button("Settings…") { SettingsWindowController.shared.show() }
                 .keyboardShortcut(",")
             Divider()
+            if let release = Updater.shared.availableRelease {
+                Button("Update to Stash \(release.version)…") { Task { await Updater.shared.install() } }
+            }
+            Button("Check for Updates…") {
+                SettingsWindowController.shared.show()
+                Task { await Updater.shared.check() }
+            }
+            Divider()
             Button("Quit Stash") { NSApp.terminate(nil) }
                 .keyboardShortcut("q")
         }
@@ -38,6 +46,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             ClipboardMonitor.shared.start()
             HotKey.shared.action = { PanelController.shared.toggle() }
             HotKey.shared.register(AppSettings.shared.hotKey)
+            Updater.shared.start()
             pruneTimer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { _ in
                 MainActor.assumeIsolated { ClipStore.shared.prune() }
             }

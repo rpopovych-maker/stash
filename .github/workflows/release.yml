@@ -16,10 +16,27 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Import signing certificate
+        env:
+          SIGNING_P12: ${{ secrets.SIGNING_P12 }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        if: env.SIGNING_P12 != ''
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          echo "$SIGNING_P12" | base64 --decode > "$RUNNER_TEMP/signing.p12"
+          security create-keychain -p ci "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p ci "$KEYCHAIN"
+          security import "$RUNNER_TEMP/signing.p12" -k "$KEYCHAIN" -P "$SIGNING_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k ci "$KEYCHAIN" >/dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          rm "$RUNNER_TEMP/signing.p12"
+
       - name: Build
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             export VERSION="${GITHUB_REF_NAME#v}"
+            export REQUIRE_SIGNING=1
           fi
           export BUILD_NUMBER="${{ github.run_number }}"
           ./build.sh --release

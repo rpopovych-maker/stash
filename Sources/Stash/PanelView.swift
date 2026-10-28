@@ -119,6 +119,19 @@ struct PanelView: View {
                     }
                 }
 
+                if let release = Updater.shared.availableRelease {
+                    Button {
+                        PanelController.shared.hide()
+                        Task { await Updater.shared.install() }
+                    } label: {
+                        Label("Update", systemImage: "arrow.down.circle.fill")
+                    }
+                    .buttonStyle(.glassProminent)
+                    .controlSize(.large)
+                    .focusable(false)
+                    .help("Install Stash \(release.version)")
+                }
+
                 Button {
                     PanelController.shared.hide()
                     SettingsWindowController.shared.show()
