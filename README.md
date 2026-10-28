@@ -24,8 +24,8 @@ Stash keeps everything you copy — text, images, links, files and colors — an
 ## Install
 
 1. Download **Stash.dmg** from the [latest release](https://github.com/rpopovych-maker/stash/releases/latest).
-2. Open it and drag **Stash** onto the **Applications** folder in the window that appears, then eject the disk image.
-3. Open Stash from Applications. macOS will warn that it can't verify the developer, because Stash isn't notarized by Apple. To allow it:
+2. Open it and drag **Stash** onto the **Applications** folder in the window that appears.
+3. Open Stash from Applications. Stash ejects the installer and moves the downloaded `.dmg` to the Trash for you. macOS will warn that it can't verify the developer, because Stash isn't notarized by Apple. To allow it:
    - Open **System Settings → Privacy & Security**, scroll down and click **Open Anyway** next to the message about Stash, then confirm, **or**
    - run this in Terminal:
      ```sh

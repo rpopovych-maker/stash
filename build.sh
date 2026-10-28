@@ -37,13 +37,13 @@ make_zip() {
 }
 
 make_dmg() {
-    local staging=build/dmg
-    rm -rf "$staging" build/Stash.dmg
-    mkdir -p "$staging"
-    cp -R "$APP" "$staging/"
-    ln -s /Applications "$staging/Applications"
-    hdiutil create -volname Stash -srcfolder "$staging" -fs HFS+ -format UDZO -ov build/Stash.dmg >/dev/null
-    rm -rf "$staging"
+    local venv=.build/dmgbuild-venv
+    if [[ ! -x "$venv/bin/dmgbuild" ]]; then
+        python3 -m venv "$venv"
+        "$venv/bin/pip" install --quiet dmgbuild
+    fi
+    rm -f build/Stash.dmg
+    "$venv/bin/dmgbuild" -s Resources/dmg-settings.py -D app="$APP" Stash build/Stash.dmg >/dev/null
     echo "Built build/Stash.dmg"
 }
 

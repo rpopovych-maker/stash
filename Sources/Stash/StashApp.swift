@@ -47,6 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             HotKey.shared.action = { PanelController.shared.toggle() }
             HotKey.shared.register(AppSettings.shared.hotKey)
             Updater.shared.start()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { InstallerCleanup.run() }
             pruneTimer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { _ in
                 MainActor.assumeIsolated { ClipStore.shared.prune() }
             }
