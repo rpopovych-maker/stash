@@ -14,7 +14,6 @@ struct ClipItemRef: Codable, Transferable {
 }
 
 let groupPalette = ["#0A84FF", "#30D158", "#FF9F0A", "#FF375F", "#BF5AF2", "#64D2FF", "#FFD60A", "#AC8E68"]
-let groupPaletteNames = ["Blue", "Green", "Orange", "Pink", "Purple", "Teal", "Yellow", "Brown"]
 
 struct PanelView: View {
     @Bindable var model: PanelModel
@@ -169,12 +168,6 @@ struct PanelView: View {
         }
         .contextMenu {
             Button("Edit…") { model.editTarget = .rename(group.id) }
-            Picker("Color", selection: Binding(get: { group.colorHex }, set: { store.setColor(group, to: $0) })) {
-                ForEach(Array(zip(groupPalette, groupPaletteNames)), id: \.0) { hex, name in
-                    Label { Text(name) } icon: { Image(nsImage: .swatch(hex)) }.tag(hex)
-                }
-            }
-            .pickerStyle(.menu)
             Divider()
             Button("Delete Group and Its Items", role: .destructive) {
                 if model.tab == .group(group.id) { model.tab = .history }
@@ -438,16 +431,6 @@ struct GroupEditor: View {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
         onSave(trimmed, color)
-    }
-}
-
-extension NSImage {
-    static func swatch(_ hex: String) -> NSImage {
-        NSImage(size: NSSize(width: 12, height: 12), flipped: false) { rect in
-            NSColor(Color(hex: hex)).setFill()
-            NSBezierPath(ovalIn: rect.insetBy(dx: 0.5, dy: 0.5)).fill()
-            return true
-        }
     }
 }
 
