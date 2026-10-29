@@ -105,6 +105,9 @@ final class PanelController: NSObject, NSWindowDelegate {
 
         let glass = NSGlassEffectView()
         glass.cornerRadius = 30
+        glass.wantsLayer = true
+        glass.layer?.cornerRadius = 30
+        glass.layer?.masksToBounds = true
         glass.contentView = NSHostingView(rootView: PanelView(model: model))
         panel.contentView = glass
     }
