@@ -14,10 +14,12 @@ struct ClipItemRef: Codable, Transferable {
 }
 
 let groupPalette = ["#0A84FF", "#30D158", "#FF9F0A", "#FF375F", "#BF5AF2", "#64D2FF", "#FFD60A", "#AC8E68"]
+let groupPaletteNames = ["Blue", "Green", "Orange", "Pink", "Purple", "Teal", "Yellow", "Brown"]
 
 struct PanelView: View {
     @Bindable var model: PanelModel
     @FocusState private var searchFocused: Bool
+    @State private var tabsOverflow = TabsOverflow(leading: false, trailing: false)
 
     private var store: ClipStore { ClipStore.shared }
 
@@ -65,36 +67,7 @@ struct PanelView: View {
                 .frame(width: 240, height: 32)
                 .glassEffect(.regular, in: .capsule)
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        TabChip(title: "History", symbol: "clock", color: nil, isSelected: model.tab == .history) {
-                            model.tab = .history
-                        }
-                        ForEach(store.groups) { group in
-                            TabChip(title: group.name, symbol: nil, color: Color(hex: group.colorHex), isSelected: model.tab == .group(group.id)) {
-                                model.tab = .group(group.id)
-                            } onDrop: { ids in
-                                for item in items(for: ids) { store.pin(item, to: group) }
-                            }
-                            .contextMenu {
-                                Button("Rename…") { model.editTarget = .rename(group.id) }
-                                Button("Delete Group and Its Items", role: .destructive) {
-                                    if model.tab == .group(group.id) { model.tab = .history }
-                                    store.delete(group)
-                                }
-                            }
-                            .popover(isPresented: editBinding(.rename(group.id)), arrowEdge: .bottom) {
-                                GroupEditor(initialName: group.name, initialColor: group.colorHex, title: "Rename Group") { name, color in
-                                    store.rename(group, to: name)
-                                    group.colorHex = color
-                                    model.editTarget = nil
-                                } onCancel: { model.editTarget = nil }
-                            }
-                        }
-                    }
-                    .padding(.vertical, 2)
-                }
-                .scrollClipDisabled()
+                groupTabs
 
                 Button { model.editTarget = .new } label: {
                     Image(systemName: "plus").frame(width: 18, height: 18)
@@ -144,6 +117,77 @@ struct PanelView: View {
                 .focusable(false)
                 .help("Settings (⌘,)")
             }
+    }
+
+    private var groupTabs: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    TabChip(title: "History", symbol: "clock", color: nil, isSelected: model.tab == .history) {
+                        model.tab = .history
+                    }
+                    .id(PanelTab.history)
+                    ForEach(store.groups) { group in
+                        groupChip(group).id(PanelTab.group(group.id))
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            .contentMargins(.horizontal, 4, for: .scrollContent)
+            .onScrollGeometryChange(for: TabsOverflow.self) { geo in
+                TabsOverflow(
+                    leading: geo.contentOffset.x > 1,
+                    trailing: geo.contentOffset.x + geo.containerSize.width < geo.contentSize.width - 1
+                )
+            } action: { _, new in
+                tabsOverflow = new
+            }
+            .mask(tabsMask)
+            .onChange(of: model.tab) {
+                withAnimation(.snappy) { proxy.scrollTo(model.tab, anchor: .center) }
+            }
+        }
+        .padding(.vertical, -4)
+    }
+
+    private var tabsMask: some View {
+        HStack(spacing: 0) {
+            LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing)
+                .frame(width: tabsOverflow.leading ? 24 : 0)
+            Color.black
+            LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                .frame(width: tabsOverflow.trailing ? 24 : 0)
+        }
+        .animation(.easeOut(duration: 0.15), value: tabsOverflow)
+    }
+
+    private func groupChip(_ group: ClipGroup) -> some View {
+        TabChip(title: group.name, symbol: nil, color: Color(hex: group.colorHex), isSelected: model.tab == .group(group.id)) {
+            model.tab = .group(group.id)
+        } onDrop: { ids in
+            for item in items(for: ids) { store.pin(item, to: group) }
+        }
+        .contextMenu {
+            Button("Edit…") { model.editTarget = .rename(group.id) }
+            Picker("Color", selection: Binding(get: { group.colorHex }, set: { store.setColor(group, to: $0) })) {
+                ForEach(Array(zip(groupPalette, groupPaletteNames)), id: \.0) { hex, name in
+                    Label { Text(name) } icon: { Image(nsImage: .swatch(hex)) }.tag(hex)
+                }
+            }
+            .pickerStyle(.menu)
+            Divider()
+            Button("Delete Group and Its Items", role: .destructive) {
+                if model.tab == .group(group.id) { model.tab = .history }
+                store.delete(group)
+            }
+        }
+        .popover(isPresented: editBinding(.rename(group.id)), arrowEdge: .bottom) {
+            GroupEditor(initialName: group.name, initialColor: group.colorHex, title: "Edit Group") { name, color in
+                store.rename(group, to: name)
+                store.setColor(group, to: color)
+                model.editTarget = nil
+            } onCancel: { model.editTarget = nil }
+        }
     }
 
     private func items(for ids: [UUID]) -> [ClipItem] {
@@ -255,6 +299,11 @@ struct PanelView: View {
         case .group: return "Drag items here, or right-click and choose Pin to"
         }
     }
+}
+
+struct TabsOverflow: Equatable {
+    let leading: Bool
+    let trailing: Bool
 }
 
 struct TabChip: View {
@@ -389,6 +438,16 @@ struct GroupEditor: View {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
         onSave(trimmed, color)
+    }
+}
+
+extension NSImage {
+    static func swatch(_ hex: String) -> NSImage {
+        NSImage(size: NSSize(width: 12, height: 12), flipped: false) { rect in
+            NSColor(Color(hex: hex)).setFill()
+            NSBezierPath(ovalIn: rect.insetBy(dx: 0.5, dy: 0.5)).fill()
+            return true
+        }
     }
 }
 

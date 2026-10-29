@@ -171,6 +171,11 @@ final class ClipStore {
         save()
     }
 
+    func setColor(_ group: ClipGroup, to hex: String) {
+        group.colorHex = hex
+        save()
+    }
+
     func delete(_ group: ClipGroup) {
         for item in group.items { context.delete(item) }
         context.delete(group)
